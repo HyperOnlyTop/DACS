@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>PHIM-REVIEW - Chỉnh sửa thông tin</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio"></script>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎬</text></svg>">
+    <style>
+        body {
+            background-color: #0f172a;
+            color: #e2e8f0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .movie-card:hover {
+            transform: scale(1.05);
+            transition: all 0.3s ease;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white">
+
+    <section class="min-h-screen flex items-center justify-center px-4">
+        <form class="bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-md space-y-6">
+            <h2 class="text-2xl font-bold text-center text-orange-500">Chỉnh sửa thông tin</h2>
+
+            <div>
+                <label for="username" class="block mb-1 font-medium">Tên hiển thị</label>
+                <input type="text" id="username" name="username" required
+                       class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-orange-500">
+            </div>
+
+            <div>
+                <label for="email" class="block mb-1 font-medium">Email</label>
+                <input type="email" id="email" name="email" required
+                       class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-orange-500">
+            </div>
+
+            <div>
+                <label for="password" class="block mb-1 font-medium">Mật khẩu mới</label>
+                <input type="password" id="password" name="password"
+                       class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-orange-500"
+                       placeholder="Để trống nếu không thay đổi">
+            </div>
+
+            <div>
+                <label for="confirm_password" class="block mb-1 font-medium">Xác nhận mật khẩu</label>
+                <input type="password" id="confirm_password" name="confirm_password"
+                       class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-orange-500"
+                       placeholder="Nhập lại mật khẩu mới nếu có">
+            </div>
+
+            <button type="submit" class="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded font-semibold transition-all">
+                Cập nhật
+            </button>
+
+            <p class="text-center text-sm text-gray-400">
+                <a href="index.html" class="text-orange-500 hover:underline">← Quay lại trang chính</a>
+            </p>
+        </form>
+    </section>
+
+    <script>
+        const user = JSON.parse(localStorage.getItem("user"));
+        if (!user) {
+            alert("Vui lòng đăng nhập để chỉnh sửa thông tin.");
+            window.location.href = "login.html";
+        }
+    </script>
+
+    <script src="JS/Authentication/information.js"></script>
+</body>
+</html>

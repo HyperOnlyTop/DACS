@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý tài khoản</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            background-color: #0f172a;
+            color: #e2e8f0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .table-row:hover {
+            background-color: #1e293b;
+            transition: background-color 0.3s ease;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #1e293b;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            width: 90%;
+            max-width: 500px;
+        }
+    </style>
+</head>
+<body>
+    <section class="container mx-auto px-6 py-12">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-orange-500">Quản lý tài khoản</h2>
+            <div class="flex gap-3">
+                <button onclick="window.location.href='index.html'" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md flex items-center gap-2">
+                    <i class="fas fa-home"></i> Trang chính
+                </button>
+                <button onclick="openAddModal()" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md flex items-center gap-2">
+                    <i class="fas fa-plus"></i> Thêm tài khoản
+                </button>
+            </div>
+        </div>
+
+        <!-- Bảng danh sách tài khoản -->
+        <div class="bg-gray-800 rounded-lg overflow-hidden shadow-lg">
+            <table class="w-full text-left">
+                <thead class="bg-gray-900">
+                    <tr>
+                        <th class="p-4">Tên</th>
+                        <th class="p-4">Email</th>
+                        <th class="p-4">Vai trò</th>
+                        <th class="p-4">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody id="userTableBody">
+                    <!-- Dữ liệu tài khoản sẽ được thêm bằng JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- Modal thêm/chỉnh sửa tài khoản -->
+    <div id="userModal" class="modal">
+        <div class="modal-content">
+            <h3 id="modalTitle" class="text-xl font-bold mb-4">Thêm tài khoản</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1">Tên</label>
+                    <input id="userName" type="text" class="w-full pl-3 pr-4 py-2 rounded-md bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="Nhập tên">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Email</label>
+                    <input id="userEmail" type="email" class="w-full pl-3 pr-4 py-2 rounded-md bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="Nhập email">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Mật khẩu</label>
+                    <input id="userPassword" type="password" class="w-full pl-3 pr-4 py-2 rounded-md bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="Nhập mật khẩu">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Vai trò</label>
+                    <select id="userRole" class="w-full pl-3 pr-4 py-2 rounded-md bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                        <option value="user">Người dùng</option>
+                        <option value="admin">Quản trị viên</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex justify-end gap-3 mt-6">
+                <button onclick="closeModal()" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md">Hủy</button>
+                <button id="saveUserBtn" onclick="saveUser()" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md">Lưu</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load JavaScript -->
+ <script src="/js/Admin/admin.js"></script>
+</body>
+</html>

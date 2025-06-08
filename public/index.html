@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PHIM-REVIEW - Xem phim chất lượng cao</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio"></script>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎬</text></svg>">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <style>
+        body {
+            background-color: #0f172a;
+            color: #e2e8f0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .movie-card:hover, .swiper-slide:hover {
+            transform: scale(1.05);
+            transition: all 0.3s ease;
+        }
+        .swiper-pagination-bullet {
+            background: #fff;
+        }
+        #notification {
+            transition: opacity 0.5s ease-in-out;
+            display: none; /* Đảm bảo ẩn ban đầu */
+        }
+        #notification.visible {
+            display: block; /* Hiển thị khi có thông báo */
+            opacity: 1;
+        }
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.75);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #1e293b;
+            padding: 24px;
+            border-radius: 12px;
+            text-align: center;
+            max-width: 95%;
+            max-height: 95%;
+            width: 600px;
+        }
+        @media (max-width: 640px) {
+            .modal-content {
+                width: 95%;
+                padding: 16px;
+            }
+        }
+        .modal-content img {
+            width: 100%;
+            height: auto;
+            max-height: calc(100% - 120px);
+            object-fit: contain;
+            border-radius: 8px;
+        }
+        .modal-content h2 {
+            font-size: 1.875rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        .modal-content p {
+            font-size: 1.125rem;
+            color: #d1d5db;
+            margin-bottom: 1rem;
+        }
+        .modal-close {
+            margin-top: 1rem;
+            background-color: #f97316;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        .modal-close:hover {
+            background-color: #ea580c;
+        }
+        #donateBtn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 80px;
+            padding: 4px;
+            border-radius: 6px;
+            transition: transform 0.2s ease, background-color 0.2s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            z-index: 50;
+        }
+        #donateBtn:hover {
+            transform: scale(1.05);
+            background-color: #ea580c;
+        }
+        #donateBtn i {
+            font-size: 20px;
+            margin-bottom: 2px;
+        }
+        #donateBtn span {
+            font-size: 14px;
+            line-height: 1;
+        }
+        @media (max-width: 640px) {
+            #donateBtn {
+                width: 60px;
+                padding: 4px;
+            }
+            #donateBtn i {
+                font-size: 16px;
+                margin-bottom: 2px;
+            }
+            #donateBtn span {
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Notification -->
+    <div id="notification" class="fixed top-4 right-4 z-50 p-4 rounded-md text-white shadow-lg">
+        <span id="notificationMessage"></span>
+    </div>
+
+    <!-- Navigation Bar -->
+    <nav class="bg-gray-900 py-4 px-6 flex justify-between items-center sticky top-0 z-50">
+        <div class="flex items-center">
+            <a href="/index.html">
+                <h1 class="text-2xl font-bold text-orange-500">PHIM-REVIEW<span class="text-white">.TOP</span></h1>
+            </a>
+        </div>
+        <div class="hidden md:flex space-x-8">
+            <a href="./index.html" class="text-white hover:text-orange-500">Trang chủ</a>
+            <a href="/listfollow.html" class="text-white hover:text-orange-500">Danh sách theo dõi</a>
+            <a href="/listbxh.html" class="text-white hover:text-orange-500">Danh sách bảng xếp hạng</a>
+            <a href="/history.html" class="text-white hover:text-orange-500">Lịch sử đã xem</a>
+            <a href="/information.html" class="text-white hover:text-orange-500">Cập nhật thông tin cá nhân</a>
+        </div>
+        <div id="authSection" class="flex items-center space-x-4"></div>
+    </nav>
+
+    <!-- Search Bar, Genre Filter, and Donate Button -->
+    <div class="flex justify-center my-8 px-4">
+        <div class="relative w-full max-w-2xl flex flex-wrap gap-4">
+            <div class="relative flex-1 min-w-[200px]">
+                <input type="text" id="searchInput" placeholder="Tìm kiếm phim"
+                       class="w-full pl-10 pr-4 py-2 rounded-md bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all h-10"
+                       oninput="debounce(searchMovies, 300)()">
+                <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+            </div>
+            <label for="genreFilter" class="sr-only">Lọc theo thể loại</label>
+            <select id="genreFilter" class="py-2 px-3 rounded-md bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500 h-10" title="Lọc theo thể loại">
+                <option value="">Tất cả thể loại</option>
+            </select>
+            <button id="donateBtn" class="bg-orange-500 hover:bg-orange-600 text-white h-10" onclick="showDonateModal()">
+                <i class="fas fa-donate"></i>
+                <span>Donate</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Recommended Movies -->
+    <section class="px-6 mb-12">
+        <h3 class="text-2xl font-bold mb-4">🎥 Phim đề xuất</h3>
+        <div class="swiper mySwiper">
+            <div class="swiper-wrapper" id="recommendedMovies"></div>
+            <div class="swiper-pagination"></div>
+        </div>
+    </section>
+
+    <!-- Movie Sections -->
+    <section class="container mx-auto px-6 py-12">
+        <div id="sections"></div>
+    </section>
+
+    <!-- Iframe Container -->
+    <div id="iframeContainer" class="fixed inset-0 bg-black bg-opacity-80 z-50 hidden flex items-center justify-center">
+        <div class="relative w-[90%] h-[80%]">
+            <iframe id="movieIframe" src="" class="w-full h-full rounded-xl shadow-lg" frameborder="0" allowfullscreen title="Trình phát phim"></iframe>
+            <button onclick="closeIframe()" class="absolute top-2 right-2 bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700">Đóng</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <script>
+        // Swiper Configuration
+        const recommendedSwiper = new Swiper(".mySwiper", {
+            slidesPerView: 1,
+            spaceBetween: 30,
+            loop: true,
+            autoplay: {
+                delay: 3000,
+                disableOnInteraction: false,
+            },
+            pagination: {
+                el: ".swiper-pagination",
+                clickable: true,
+            },
+            navigation: {
+                nextEl: ".swiper-button-next",
+                prevEl: ".swiper-button-prev",
+            },
+            breakpoints: {
+                640: { slidesPerView: 2 },
+                1024: { slidesPerView: 3 },
+                1280: { slidesPerView: 4 }
+            }
+        });
+
+        // Debounce Function
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // Show Notification
+        function showNotification(message, type = 'error') {
+            console.log(`Show notification: ${message}, type: ${type}`);
+            const notification = document.getElementById('notification');
+            const messageElement = document.getElementById('notificationMessage');
+            if (!notification || !messageElement) {
+                console.error('Không tìm thấy #notification hoặc #notificationMessage');
+                return;
+            }
+            messageElement.textContent = message;
+            notification.className = `fixed top-4 right-4 z-50 p-4 rounded-md text-white shadow-lg ${
+                type === 'error' ? 'bg-red-600' : 'bg-green-600'
+            }`;
+            notification.classList.remove('hidden');
+            notification.classList.add('visible');
+            setTimeout(() => {
+                notification.classList.remove('visible');
+                notification.classList.add('hidden');
+            }, 3000);
+        }
+
+        // Fetch Genres
+        async function fetchGenres() {
+            try {
+                const response = await fetch('/api/genres');
+                if (!response.ok) throw new Error(`Lỗi API /api/genres: ${response.statusText}`);
+                const genres = await response.json();
+                if (!Array.isArray(genres)) throw new Error('Dữ liệu thể loại không phải mảng');
+                renderGenres(genres);
+            } catch (error) {
+                console.error('Lỗi khi tải thể loại:', error);
+                document.getElementById('genreFilter').innerHTML = `<option value="">Lỗi tải thể loại</option>`;
+                showNotification('Không thể tải danh sách thể loại', 'error');
+            }
+        }
+
+        // Render Genres
+        function renderGenres(genres) {
+            const genreFilter = document.getElementById('genreFilter');
+            genreFilter.innerHTML = `<option value="">Tất cả thể loại</option>`;
+            genres.forEach(genre => {
+                if (genre.id && genre.name) {
+                    const option = document.createElement('option');
+                    option.value = genre.id;
+                    option.textContent = genre.name;
+                    genreFilter.appendChild(option);
+                }
+            });
+        }
+
+        // Fetch Movies
+        async function fetchMovies(genreId = '') {
+            try {
+                let url = '/api/movies';
+                if (genreId) url += `?genre_id=${genreId}`;
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(`Lỗi API /api/movies: ${response.status} ${response.statusText}`);
+                const movies = await response.json();
+                if (!Array.isArray(movies)) throw new Error('Dữ liệu phim không phải mảng');
+
+                const sortedByCreatedAt = [...movies].sort((a, b) => {
+                    const dateA = a.created_at ? new Date(a.created_at) : new Date(0);
+                    const dateB = b.created_at ? new Date(b.created_at) : new Date(0);
+                    return dateB - dateA;
+                });
+
+                const sortedByYear = [...movies].sort((a, b) => (b.year || 0) - (a.year || 0));
+
+                const finalSortedByCreatedAt = sortedByCreatedAt.every(movie => !movie.created_at)
+                    ? [...movies].sort((a, b) => (b.id || 0) - (a.id || 0))
+                    : sortedByCreatedAt;
+
+                renderRecommendedMovies(sortedByYear.slice(0, 10));
+                renderMovieSections([
+                    { title: "Phim mới", movies: sortedByYear.filter(m => m.year >= 2022).slice(0, 6), type: 'new' },
+                    { title: "Phim mới cập nhật", movies: finalSortedByCreatedAt.slice(0, 6), type: 'recent' },
+                    { title: "Phim phổ biến", movies: movies.slice(0, 20), type: 'popular', isCarousel: true }
+                ]);
+            } catch (error) {
+                console.error('Error fetching movies:', error);
+                document.getElementById('sections').innerHTML = `<p class="text-gray-400 text-center">Lỗi khi tải danh sách phim: ${error.message}</p>`;
+                showNotification('Không thể tải danh sách phim', 'error');
+            }
+        }
+
+        // Search Movies
+        async function searchMovies() {
+            const keyword = document.getElementById('searchInput').value.trim();
+            if (!keyword) {
+                fetchMovies();
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/movies/search?keyword=${encodeURIComponent(keyword)}`);
+                if (!response.ok) throw new Error(`Lỗi API /api/movies/search: ${response.status} ${response.statusText}`);
+                const movies = await response.json();
+                if (!Array.isArray(movies)) throw new Error('Dữ liệu phim không phải mảng');
+                renderMovieSections([{ title: `Kết quả tìm kiếm: "${keyword}"`, movies }]);
+            } catch (error) {
+                console.error('Error searching movies:', error);
+                document.getElementById('sections').innerHTML = `<p class="text-gray-400 text-center">Lỗi khi tìm kiếm phim: ${error.message}</p>`;
+                showNotification('Không thể tìm kiếm phim', 'error');
+            }
+        }
+
+        // Render Recommended Movies
+        function renderRecommendedMovies(movies) {
+            const container = document.getElementById("recommendedMovies");
+            container.innerHTML = movies.map(movie => `
+                <div class="swiper-slide relative rounded overflow-hidden h-[400px] cursor-pointer" onclick="window.location.href='/movie-detail.html?id=${movie.id}'">
+                    <img src="${movie.image_url || 'https://via.placeholder.com/300x400?text=' + encodeURIComponent(movie.title)}" class="w-full h-full object-cover" alt="${movie.title}">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent text-white p-6 flex flex-col justify-end">
+                        <h4 class="text-2xl font-semibold mb-1">${movie.title}</h4>
+                        <p class="text-sm text-gray-300 mb-3 italic">${movie.description || 'Không có mô tả'}</p>
+                        <div class="flex gap-3">
+                            <button onclick="event.stopPropagation(); window.location.href='/watch.html?id=${movie.id}'"
+                                    class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-1 rounded text-sm flex items-center gap-1">
+                                <i class="fas fa-play"></i> Xem ngay
+                            </button>
+                            <button onclick="event.stopPropagation(); window.location.href='/movie-detail.html?id=${movie.id}'"
+                                    class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-1 rounded text-sm flex items-center gap-1">
+                                <i class="fas fa-info-circle"></i> Chi tiết
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            recommendedSwiper.update();
+        }
+
+        // Render Movie Card
+        function renderMovieCard(movie) {
+            return `
+                <div class="movie-card bg-gray-800 rounded-lg overflow-hidden hover:shadow-lg hover:shadow-orange-500/20 cursor-pointer" onclick="window.location.href='/movie-detail.html?id=${movie.id}'">
+                    <img src="${movie.image_url || 'https://via.placeholder.com/300x180?text=' + encodeURIComponent(movie.title)}" class="w-full h-60 object-cover">
+                    <div class="p-3">
+                        <h3 class="font-semibold truncate">${movie.title}</h3>
+                        <div class="flex justify-between text-sm text-gray-400 mt-1">
+                            <span>${movie.year || 'N/A'}</span>
+                            <span class="bg-orange-500 text-white px-1 rounded">HD</span>
+                        </div>
+                        <p class="text-sm text-gray-400 mt-1"><i class="fas fa-eye"></i> ${movie.views || 0} lượt xem</p>
+                        <div class="flex gap-3 mt-2">
+                            <button onclick="event.stopPropagation(); window.location.href='/watch.html?id=${movie.id}'"
+                                    class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-1 rounded text-sm flex items-center gap-1">
+                                <i class="fas fa-play"></i> Xem ngay
+                            </button>
+                            <button onclick="event.stopPropagation(); window.location.href='/movie-detail.html?id=${movie.id}'"
+                                    class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-1 rounded text-sm flex items-center gap-1">
+                                <i class="fas fa-info-circle"></i> Chi tiết
+                            </button>
+                        </div>
+                    </div>
+                </div>`;
+        }
+
+        // Render Movie Sections
+        function renderMovieSections(sections) {
+            const container = document.getElementById("sections");
+            container.innerHTML = sections.map((section, index) => {
+                const typeMap = {
+                    'Phim mới': 'new',
+                    'Phim mới cập nhật': 'recent',
+                    'Phim phổ biến': 'popular'
+                };
+                const sectionType = section.type || typeMap[section.title] || 'unknown';
+                if (section.isCarousel) {
+                    return `
+                        <section class="mb-12">
+                            <div class="flex justify-between items-center mb-6">
+                                <h2 class="text-2xl font-bold">${section.title}</h2>
+                                <a href="/all-movies.html?type=${sectionType}" class="text-orange-500 hover:underline">Xem tất cả</a>
+                            </div>
+                            <div class="swiper popularSwiper-${index}">
+                                <div class="swiper-wrapper">
+                                    ${section.movies.map(movie => `
+                                        <div class="swiper-slide">
+                                            ${renderMovieCard(movie)}
+                                        </div>
+                                    `).join('')}
+                                </div>
+                                <div class="swiper-pagination"></div>
+                                <div class="swiper-button-next"></div>
+                                <div class="swiper-button-prev"></div>
+                            </div>
+                            <style> 
+                                .swiper-button-next, .swiper-button-prev {
+                                    background: rgba(0,0,0,0.85) !important;
+                                    color: #fff !important;
+                                    border-radius: 50%;
+                                    width: 44px;
+                                    height: 44px;
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+                                    transition: background 0.2s, transform 0.2s;
+                                    top: 45%;
+                                }
+                                .swiper-button-next:hover, .swiper-button-prev:hover {
+                                    background: #f97316 !important;
+                                    color: #fff !important;
+                                    transform: scale(1.1);
+                                }
+                            </style>
+                        </section>
+                    `;
+                } else {
+                    return `
+                        <section class="mb-12">
+                            <div class="flex justify-between items-center mb-6">
+                                <h2 class="text-2xl font-bold">${section.title}</h2>
+                                <a href="/all-movies.html?type=${sectionType}" class="text-orange-500 hover:underline">Xem tất cả</a>
+                            </div>
+                            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                                ${section.movies.map(renderMovieCard).join('')}
+                            </div>
+                        </section>
+                    `;
+                }
+            }).join('');
+
+            sections.forEach((section, index) => {
+                if (section.isCarousel) {
+                    new Swiper(`.popularSwiper-${index}`, {
+                        slidesPerView: 1,
+                        slidesPerGroup: 2,
+                        spaceBetween: 30,
+                        loop: true,
+                        pagination: {
+                            el: `.popularSwiper-${index} .swiper-pagination`,
+                            clickable: true,
+                        },
+                        navigation: {
+                            nextEl: `.popularSwiper-${index} .swiper-button-next`,
+                            prevEl: `.popularSwiper-${index} .swiper-button-prev`,
+                        },
+                        breakpoints: {
+                            640: { slidesPerView: 2 },
+                            1024: { slidesPerView: 3 },
+                            1280: { slidesPerView: 4 }
+                        }
+                    });
+                }
+            });
+        }
+
+        // Show Movie Details
+        async function showMovieDetails(movieId) {
+            try {
+                const response = await fetch(`/api/getMovie?id=${movieId}`);
+                if (!response.ok) throw new Error(`Lỗi API /api/getMovie: ${response.statusText}`);
+                const movie = await response.json();
+                showNotification(
+                    `Tiêu đề: ${movie.title}\nNăm: ${movie.year || 'N/A'}\nMô tả: ${movie.description || 'Không có mô tả'}\nLượt xem: ${movie.views || 0}`,
+                    'success'
+                );
+            } catch (error) {
+                console.error('Error fetching movie details:', error);
+                showNotification('Không thể tải thông tin phim', 'error');
+            }
+        }
+
+        // Iframe Handling
+        function openIframe(url) {
+            try {
+                if (!url) throw new Error('Không có URL video');
+                const iframe = document.getElementById('movieIframe');
+                iframe.src = url;
+                iframe.onerror = () => showNotification('Lỗi khi tải video. Vui lòng thử lại.', 'error');
+                document.getElementById('iframeContainer').classList.remove('hidden');
+            } catch (error) {
+                console.error('Error opening iframe:', error);
+                showNotification('Đã xảy ra lỗi khi mở video', 'error');
+            }
+        }
+
+        function closeIframe() {
+            const iframeContainer = document.getElementById('iframeContainer');
+            const iframe = document.getElementById('movieIframe');
+            iframe.src = "";
+            iframeContainer.classList.add('hidden');
+        }
+
+        // Navbar Authentication
+        function updateNavbar() {
+            const authSection = document.getElementById('authSection');
+            const navLinks = document.querySelector('.md\\:flex.space-x-8');
+            let user = null;
+            try {
+                user = JSON.parse(localStorage.getItem('user'));
+            } catch (e) {
+                console.error('Lỗi parse user từ localStorage:', e);
+            }
+
+            const existingAdminLinks = document.querySelectorAll('#adminAccountLink, #adminMovieLink');
+            existingAdminLinks.forEach(link => link.remove());
+
+            if (user && user.name && user.id) {
+                authSection.innerHTML = `
+                    <span class="text-white">👋 Xin chào, <strong>${user.name}</strong></span>
+                    <button onclick="logout()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md">Đăng xuất</button>
+                `;
+                if (user.role === 'admin') {
+                    const adminAccountLink = document.createElement('a');
+                    adminAccountLink.href = "/admin.html";
+                    adminAccountLink.id = 'adminAccountLink';
+                    adminAccountLink.textContent = "Quản lý tài khoản";
+                    adminAccountLink.className = "text-white hover:text-orange-500";
+                    navLinks.appendChild(adminAccountLink);
+
+                    const adminMovieLink = document.createElement('a');
+                    adminMovieLink.href = "/admin-movie.html";
+                    adminMovieLink.id = 'adminMovieLink';
+                    adminMovieLink.textContent = "Quản lý phim";
+                    adminMovieLink.className = "text-white hover:text-orange-500";
+                    navLinks.appendChild(adminMovieLink);
+                }
+            } else {
+                authSection.innerHTML = `
+                    <button onclick="openIframe('/login.html')" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md">Đăng nhập</button>
+                `;
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('user');
+            localStorage.removeItem('token');
+            updateNavbar();
+            showNotification('Đăng xuất thành công!', 'success');
+            setTimeout(() => window.location.href = '/index.html', 1000);
+        }
+
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            updateNavbar();
+            fetchGenres();
+            fetchMovies();
+            document.getElementById('genreFilter').addEventListener('change', () => {
+                const genreId = document.getElementById('genreFilter').value;
+                console.log('Selected genre:', genreId);
+                if (genreId) {
+                    window.location.href = `/genre.html?genre_id=${genreId}`;
+                } else {
+                    fetchMovies();
+                }
+            });
+        });
+
+        window.addEventListener('message', (event) => {
+            if (event.data.type === 'login-success') {
+                localStorage.setItem('user', JSON.stringify(event.data.user));
+                closeIframe();
+                updateNavbar();
+                showNotification('Đăng nhập thành công!', 'success');
+            } else if (event.data === 'closeIframe') {
+                closeIframe();
+            }
+        });
+    </script>
+
+    <!-- Donate Modal -->
+    <div id="donateModal" class="modal">
+        <div class="modal-content">
+            <h2 class="text-3xl font-bold mb-4">Ủng hộ PHIM-REVIEW.TOP</h2>
+            <p class="text-gray-300 mb-4 text-lg">Quét mã QR để donate qua ngân hàng:</p>
+            <img src="/images/QR-bank.gif" alt="QR Code Ngân Hàng" onerror="this.src='https://via.placeholder.com/300x300?text=QR+Code'">
+            <button class="modal-close" onclick="closeDonateModal()">Đóng</button>
+        </div>
+    </div>
+
+    <!-- Modal JS -->
+    <script>
+        function showDonateModal() {
+            const modal = document.getElementById('donateModal');
+            modal.style.display = 'flex';
+        }
+
+        function closeDonateModal() {
+            const modal = document.getElementById('donateModal');
+            modal.style.display = 'none';
+        }
+
+        document.getElementById('donateModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeDonateModal();
+            }
+        });
+    </script>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-6 px-6 mt-12 border-t border-gray-700">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center">
+            <div class="mb-4 md:mb-0 text-center md:text-left">
+                <h4 class="text-lg font-semibold">Kết nối với chúng tôi</h4>
+                <p class="text-sm text-gray-400">© 2025 PHIM-REVIEW.TOP. Tất cả các quyền được bảo lưu.</p>
+            </div>
+            <div class="flex space-x-6 items-center">
+                <a href="https://www.facebook.com/" target="_blank" rel="noopener noreferrer"
+                   class="text-gray-400 hover:text-white text-2xl transition-colors duration-300" title="Facebook">
+                    <i class="fab fa-facebook-square"></i>
+                </a>
+                <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer"
+                   class="text-gray-400 hover:text-white text-2xl transition-colors duration-300" title="Instagram">
+                    <i class="fab fa-instagram-square"></i>
+                </a>
+                <button onclick="showDonateModal()" 
+                        class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md flex items-center gap-1">
+                    <i class="fas fa-donate"></i> Donate
+                </button>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
